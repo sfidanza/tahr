@@ -17,7 +17,7 @@
     "lint": "eslint .",
     "test": "node --test"
   },
-  "main": "src/frw.js",
+  "main": "src/index.js",
   "type": "module",
   "repository": {
     "type": "git",

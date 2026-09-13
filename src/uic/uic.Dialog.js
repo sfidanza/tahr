@@ -2,7 +2,7 @@
  * uic.Dialog
  **********************************************************/
 
-import { dom } from './frw.dom.js';
+import { dom } from '../frw/frw.dom.js';
 
 export const Dialog = function(params) {
 	this.params = params;

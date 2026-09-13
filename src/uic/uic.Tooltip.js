@@ -2,7 +2,7 @@
  * uic.Tooltip
  **********************************************************/
 
-import { dom } from './frw.dom.js';
+import { dom } from '../frw/frw.dom.js';
 
 /**
  * Create the tooltip container and attaches it to document.body

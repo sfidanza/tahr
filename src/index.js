@@ -1,6 +1,6 @@
 /**********************************************************
- * UI Components
+ * Framework
  **********************************************************/
 
-export { Dialog } from './uic/uic.Dialog.js';
-export { Tooltip } from './uic/uic.Tooltip.js';
+export * as frw from './frw.js';
+export * as uic from './uic.js';
