@@ -1,0 +1,32 @@
+{
+  "name": "tahr",
+  "version": "0.0.1",
+  "author": "Stéphane Fidanza <stephane.fidanza@gmail.com>",
+  "description": "A lightweight framework with templating support, data manipulation and basic UI components",
+  "homepage": "https://github.com/sfidanza/tahr",
+  "bugs": {
+    "url": "https://github.com/sfidanza/tahr/issues"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@stylistic/eslint-plugin": "5.10.0",
+    "eslint": "10.10.0",
+    "globals": "17.12.0"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "test": "node --test"
+  },
+  "main": "src/frw.js",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sfidanza/tahr.git"
+  },
+  "license": "MIT",
+  "keywords": [
+    "lightweight",
+    "framework",
+    "template"
+  ]
+}
