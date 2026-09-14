@@ -1,5 +1,5 @@
 {
-  "name": "tahr",
+  "name": "@sfidanza/tahr",
   "version": "0.0.1",
   "author": "Stéphane Fidanza <stephane.fidanza@gmail.com>",
   "description": "A lightweight framework with templating support, data manipulation and basic UI components",
