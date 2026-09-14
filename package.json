@@ -1,6 +1,6 @@
 {
   "name": "@sfidanza/tahr",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "Stéphane Fidanza <stephane.fidanza@gmail.com>",
   "description": "A lightweight framework with templating support, data manipulation and basic UI components",
   "homepage": "https://github.com/sfidanza/tahr",
