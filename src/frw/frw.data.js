@@ -32,7 +32,7 @@ data.indexBy = function (list, key, val) {
 	const map = {};
 	for (const item of list) {
 		const value = (typeof key === 'function') ? key(item) : item[key];
-		map[value] = value ? item[val] : item;
+		map[value] = val ? item[val] : item;
 	}
 	return map;
 };
