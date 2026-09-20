@@ -1,0 +1,15 @@
+/**********************************************************
+ * uic.Tooltip
+ * 
+ * Usage:
+ * - Copy/customize .uic-tooltip in your CSS file
+ **********************************************************/
+.uic-tooltip {
+	/* Needed for correct positioning */
+	position: absolute;
+	top: 0;
+	/* Define your custom styles below */
+	border: 1px solid #333333;
+	background: #FFFFFF;
+	padding: 0.5em;
+}
