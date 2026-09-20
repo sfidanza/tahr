@@ -4,91 +4,95 @@
 
 import { dom } from '../frw/frw.dom.js';
 
-export const Dialog = function(params) {
-	this.params = params;
-	
-	this.dom = {};
-	this.dom.dlg = document.getElementById(params.id);
-	this.dom.close = document.getElementById(params.id + '-close');
-	this.dom.title = this.dom.dlg.getElementsByTagName('h5')[0];
-	this.dom.body = document.getElementById(params.id + '-body');
-	
-	this.dom.close.onclick = this.hide.bind(this);
-	this.dom.close.onmousedown = function(e) { if (e) e.cancelBubble = true; };
-	this.dom.title.onmousedown = drag.start.bind(drag, this.dom.dlg);
-};
+export class Dialog {
+	constructor(params) {
+		this.params = params;
 
-Dialog.prototype.destroy = function() {
-	this.dom.dlg = null;
-	this.dom.close = null;
-	this.dom.title = null;
-	this.dom.body = null;
-};
+		this.el = {};
+		this.el.dlg = document.getElementById(params.id);
+		this.el.close = document.getElementById(params.id + '-close');
+		this.el.title = this.el.dlg.getElementsByTagName('h5')[0];
+		this.el.body = document.getElementById(params.id + '-body');
 
-Dialog.prototype.center = function() {
-	dom.center(this.dom.dlg, 0.5, 0.4);
-};
-
-Dialog.prototype.handleEvent = function(event) {
-	if (event.type === 'resize') {
-		this.keepInPlace();
+		this.el.close.onclick = this.hide.bind(this);
+		this.el.close.onmousedown = function (e) { if (e) e.cancelBubble = true; };
+		this.el.title.onmousedown = drag.start.bind(drag, this.el.dlg);
 	}
-};
 
-Dialog.prototype.show = function() {
-	if (this.params.centered) {
-		this.center();
+	destroy() {
+		this.el.close.onmousedown = null;
+		this.el.title.onmousedown = null;
+		this.el.close = null;
+		this.el.title = null;
+		this.el.body = null;
+		this.el.dlg = null;
 	}
-	
-	document.body.style.overflow = 'hidden';
-	dom.addOverlay();
-	
-	const dlg = this.dom.dlg;
-	dlg.parentNode.removeChild(dlg);
-	document.body.appendChild(dlg);
-	dlg.style.visibility = 'visible';
-	
-	window.addEventListener('resize', this); // registers this.handleEvent in the correct scope
-};
 
-Dialog.prototype.keepInPlace = function() {
-	if (this.params.centered) this.center();
-	dom.positionOverlay();
-};
-
-Dialog.prototype.isVisible = function() {
-	return (this.dom.dlg.style.visibility == 'visible');
-};
-
-Dialog.prototype.hide = function() {
-	if (this.isVisible()) {
-		window.removeEventListener('resize', this);
-		document.body.style.overflow = 'auto';
-		dom.removeOverlay();
-		const dlg = this.dom.dlg;
-		dlg.style.visibility = 'hidden';
-		dlg.style.top = '0px';
-		dlg.style.left = '0px';
+	center() {
+		dom.center(this.el.dlg, 0.5, 0.4);
 	}
-	return false;
-};
 
-Dialog.prototype.setTitle = function(title) {
-	this.dom.title.innerHTML = title;
-};
+	handleEvent(event) {
+		if (event.type === 'resize') {
+			this.keepInPlace();
+		}
+	}
 
-Dialog.prototype.getBody = function() {
-	return this.dom.body;
-};
+	show() {
+		if (this.params.centered) {
+			this.center();
+		}
+
+		document.body.style.overflow = 'hidden';
+		dom.addOverlay();
+
+		const dlg = this.el.dlg;
+		dlg.parentNode.removeChild(dlg);
+		document.body.appendChild(dlg);
+		dlg.style.visibility = 'visible';
+
+		window.addEventListener('resize', this); // registers this.handleEvent in the correct scope
+	}
+
+	keepInPlace() {
+		if (this.params.centered) this.center();
+		dom.positionOverlay();
+	}
+
+	isVisible() {
+		return (this.el.dlg.style.visibility == 'visible');
+	}
+
+	hide() {
+		if (this.isVisible()) {
+			window.removeEventListener('resize', this);
+			document.body.style.overflow = 'auto';
+			dom.removeOverlay();
+			const dlg = this.el.dlg;
+			dlg.style.visibility = 'hidden';
+			dlg.style.top = '0px';
+			dlg.style.left = '0px';
+		}
+		return false;
+	}
+
+	setTitle(title) {
+		this.el.title.innerHTML = title;
+	}
+
+	getBody() {
+		return this.el.body;
+	}
+}
 
 /*********************************************************/
 
 const drag = {
 	dragged: null,
-	dragOffset: {x:0, y:0}
+	dragOffset: { x: 0, y: 0 }
 };
 
-drag.start = function(dragged, e) {
+drag.start = function (dragged, e) {
 	e.preventDefault();
 	this.dragged = dragged;
 	const iPos = dom.getPos(dragged);
@@ -99,7 +103,7 @@ drag.start = function(dragged, e) {
 	document.onmouseup = this.end.bind(this);
 };
 
-drag.move = function(e) {
+drag.move = function (e) {
 	e.preventDefault();
 	if (this.dragged != null) {
 		const mPos = dom.mousePosition(e);
@@ -108,7 +112,7 @@ drag.move = function(e) {
 	}
 };
 
-drag.end = function(e) {
+drag.end = function (e) {
 	e.preventDefault();
 	if (this.dragged != null) {
 		this.dragged = null;
