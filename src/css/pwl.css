@@ -1,0 +1,19 @@
+/**********************************************************
+ * uic.PWL (Please Wait Loading)
+ * 
+ * Usage:
+ * - Copy/customize .uic-pwl in your CSS file
+ **********************************************************/
+.uic-pwl {
+	/* Needed for correct positioning */
+	position: absolute;
+	top: 0;
+	left: 0;
+	/* Define your custom styles below */
+	background: #FFFFFF url(img/loader.gif) 1.5em 50% no-repeat;
+	border: 1px outset #333333;
+	border-radius: 3em;
+	padding: 2em 4em;
+	width: 15em;
+	text-align: center;
+}
