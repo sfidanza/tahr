@@ -20,6 +20,9 @@
   "exports": {
     ".": "./src/index.js"
   },
+  "files": [
+    "src"
+  ],
   "type": "module",
   "repository": {
     "type": "git",
