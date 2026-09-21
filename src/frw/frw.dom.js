@@ -6,28 +6,6 @@ export const dom = {};
 
 /*********************************************************/
 
-dom.updateContainer = function (content, region) {
-	dom.addContent(content, region);
-	dom.executeScripts(region);
-};
-
-dom.executeScripts = function (region) {
-	const scripts = region.getElementsByTagName('script');
-	for (const script of scripts) {
-		window.eval(script.text);
-	}
-};
-
-dom.addContent = function (content, region) {
-	region.innerHTML = content;
-};
-
-dom.cleanContainer = function (region) {
-	region.innerHTML = '';
-};
-
-/*********************************************************/
-
 dom.addOverlay = function () {
 	if (!this.overlay) {
 		this.overlay = document.createElement('div');
