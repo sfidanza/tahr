@@ -3,6 +3,7 @@
  **********************************************************/
 
 import { dom } from '../frw/frw.dom.js';
+import { Overlay } from './uic.Overlay.js';
 
 export class Dialog {
 	constructor(params) {
@@ -39,16 +40,14 @@ export class Dialog {
 	}
 
 	show() {
-		if (this.params.centered) {
-			this.center();
+		if (!this.overlay) {
+			this.overlay = new Overlay();
 		}
 
-		document.body.style.overflow = 'hidden';
-		dom.addOverlay();
-
 		const dlg = this.el.dlg;
-		dlg.parentNode.removeChild(dlg);
+		dlg.remove();
 		document.body.appendChild(dlg);
+		if (this.params.centered) this.center();
 		dlg.style.visibility = 'visible';
 
 		window.addEventListener('resize', this); // registers this.handleEvent in the correct scope
@@ -56,22 +55,24 @@ export class Dialog {
 
 	keepInPlace() {
 		if (this.params.centered) this.center();
-		dom.positionOverlay();
+		this.overlay.position();
 	}
 
 	isVisible() {
-		return (this.el.dlg.style.visibility == 'visible');
+		return (this.el.dlg.style.visibility === 'visible');
 	}
 
 	hide() {
 		if (this.isVisible()) {
 			window.removeEventListener('resize', this);
-			document.body.style.overflow = 'auto';
-			dom.removeOverlay();
-			const dlg = this.el.dlg;
-			dlg.style.visibility = 'hidden';
-			dlg.style.top = '0px';
-			dlg.style.left = '0px';
+
+			this.overlay.remove();
+			this.overlay = null;
+
+			const style = this.el.dlg.style;
+			style.visibility = 'hidden';
+			style.top = '0px';
+			style.left = '0px';
 		}
 		return false;
 	}

@@ -4,35 +4,6 @@
 
 export const dom = {};
 
-/*********************************************************/
-
-dom.addOverlay = function () {
-	if (!this.overlay) {
-		this.overlay = document.createElement('div');
-		this.overlay.className = 'uic-overlay';
-	}
-	dom.positionOverlay();
-	document.body.appendChild(this.overlay);
-};
-
-dom.positionOverlay = function () {
-	const overlay = this.overlay;
-	const html = document.documentElement;
-	const scroll = dom.getScroll();
-	overlay.style.left = (scroll.left) + 'px';
-	overlay.style.top = (scroll.top) + 'px';
-	overlay.style.width = (html.clientWidth) + 'px';
-	overlay.style.height = (html.clientHeight) + 'px';
-};
-
-dom.removeOverlay = function () {
-	if (this.overlay) {
-		this.overlay.parentNode.removeChild(this.overlay);
-	}
-};
-
-/*********************************************************/
-
 dom.getPos = function (obj) {
 	let objTop = 0, objLeft = 0;
 	while (obj) {
