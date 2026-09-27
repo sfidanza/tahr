@@ -8,7 +8,6 @@
  *  - compatible with CSP `script-src` directive to avoid `inline-script`
  *  - simplifies calling template method from html
  */
-export const Template = function () { };
 
 /*
  * regexp hints:
@@ -21,211 +20,217 @@ export const Template = function () { };
  *  http://www.regular-expressions.info
  *  http://blog.stevenlevithan.com
  */
-Template.prototype.PARSER = /<!-- (BEGIN|END): ([-\w]+) -->(.*?)(?=(?:<!-- (?:BEGIN|END): (?:[-\w]+) -->)|$)/sg;
-Template.prototype.MAIN = '_main';
+const PARSER = /<!-- (BEGIN|END): ([-\w]+) -->(.*?)(?=(?:<!-- (?:BEGIN|END): (?:[-\w]+) -->)|$)/sg;
+const MAIN = '_main';
 
-/**
- * Initialize the template object with the source text.
- * This calls the onCreate callback, passing it any additional parameter.
- */
-Template.prototype.create = function (tplText, ...params) {
-	this.onCreate(...params);
+export class Template {
+	constructor() { }
 
-	// i18n support: replaces directly "{i18n.xxx}" by the string from the i18n repository.
-	if (this.i18n) {
-		tplText = tplText.replace(/{i18n\.([.\w]+)}/g, (match, key) => this.i18n[key] ?? match);
-	}
+	/**
+	 * Initialize the template object with the source text.
+	 * This calls the onCreate callback, passing it any additional parameter.
+	 */
+	create(tplText, ...params) {
+		this.onCreate(...params);
 
-	// Extract variables
-	this.extractObjectVariables(tplText);
-
-	// Main parsing
-	this.make(tplText.trim());
-};
-
-Template.prototype.store = function (s, parent, child) {
-	if (parent) {
-		this.blocks[parent] += s;
-		s = '';
-	} else {
-		parent = this.MAIN;
-	}
-	this.subBlocks[parent].push(child);
-	return s;
-};
-
-Template.prototype.make = function (text) {
-	this.blocks = {};
-	this.subBlocks = {};
-	this.parsedBlocks = {};
-	const stack = [];
-
-	this.subBlocks[this.MAIN] = [];
-	this.blocks[this.MAIN] = text.replace(this.PARSER, (match, tag, blockName, content) => {
-		let r;
-		if (tag === 'BEGIN') {
-			if (blockName in this.blocks) {
-				console.error('Duplicated block <%s>.', blockName);
-			}
-			stack.push(blockName);
-			this.blocks[blockName] = content;
-			this.subBlocks[blockName] = [];
-			r = '';
-		} else if (tag === 'END') {
-			const closed = stack.pop();
-			if (closed !== blockName) {
-				console.error('Incorrect block closed <%s>. Opened block was <%s>.', blockName, closed);
-			}
-			r = this.store('{blk_' + closed + '}' + content, stack[stack.length - 1], closed);
+		// i18n support: replaces directly "{i18n.xxx}" by the string from the i18n repository.
+		if (this.i18n) {
+			tplText = tplText.replace(/{i18n\.([.\w]+)}/g, (match, key) => this.i18n[key] ?? match);
 		}
-		return r;
-	});
-	if (stack.length > 0) {
-		console.error('There are unclosed blocks: <%s>.', stack.join('>, <'));
-	}
-};
 
-/**
- * Extract variables containing '.', to optimize 'this.set' with object values.
- * No recursivity: only supports 'key.property', 'key1.key2.key3...property'
- */
-Template.prototype.extractObjectVariables = function (text) {
-	this.variables = {};
-	const varList = text.match(/{[.\w]+}/g);
-	if (varList) {
-		for (const variable of varList) {
-			const pos = variable.indexOf('.');
-			if (pos > 1) { // account for '{' and no '.' as first character
-				const objName = variable.slice(1, pos); // remove opening '{'
-				const property = variable.slice(pos + 1, -1); // remove closing '}'
-				if (!this.variables[objName]) {
-					this.variables[objName] = {};
+		// Extract variables
+		this.extractObjectVariables(tplText);
+
+		// Main parsing
+		this.make(tplText.trim());
+	}
+
+	store(s, parent, child) {
+		if (parent) {
+			this.blocks[parent] += s;
+			s = '';
+		} else {
+			parent = MAIN;
+		}
+		this.subBlocks[parent].push(child);
+		return s;
+	}
+
+	make(text) {
+		this.blocks = {};
+		this.subBlocks = {};
+		this.parsedBlocks = {};
+		const stack = [];
+
+		this.subBlocks[MAIN] = [];
+		this.blocks[MAIN] = text.replace(PARSER, (match, tag, blockName, content) => {
+			let r;
+			if (tag === 'BEGIN') {
+				if (blockName in this.blocks) {
+					console.error('Duplicated block <%s>.', blockName);
 				}
-				this.variables[objName][property] = true;
+				stack.push(blockName);
+				this.blocks[blockName] = content;
+				this.subBlocks[blockName] = [];
+				r = '';
+			} else if (tag === 'END') {
+				const closed = stack.pop();
+				if (closed !== blockName) {
+					console.error('Incorrect block closed <%s>. Opened block was <%s>.', blockName, closed);
+				}
+				r = this.store('{blk_' + closed + '}' + content, stack[stack.length - 1], closed);
+			}
+			return r;
+		});
+		if (stack.length > 0) {
+			console.error('There are unclosed blocks: <%s>.', stack.join('>, <'));
+		}
+	}
+
+	/**
+	 * Extract variables containing '.', to optimize 'this.set' with object values.
+	 * No recursivity: only supports 'key.property', not 'key1.key2.key3...property'
+	 */
+	extractObjectVariables(text) {
+		this.variables = {};
+		const varList = text.match(/{[.\w]+}/g);
+		if (varList) {
+			for (const variable of varList) {
+				const pos = variable.indexOf('.');
+				if (pos > 1) { // account for '{' and no '.' as first character
+					const objName = variable.slice(1, pos); // remove opening '{'
+					const property = variable.slice(pos + 1, -1); // remove closing '}'
+					if (!this.variables[objName]) {
+						this.variables[objName] = {};
+					}
+					this.variables[objName][property] = true;
+				}
 			}
 		}
 	}
-};
 
-/**
- * Set a template variable to a value.
- * If value is an object, all the template variables of the form 'key.property' are set to value[property].
- */
-Template.prototype.set = function (key, value) {
-	if (value && typeof value === 'object') { // filter out null (typeof null is "object")
-		for (const p in this.variables[key]) {
-			this.setValue(key + '.' + p, value[p]); // avoid recursivity (for now at least)
+	/**
+	 * Set a template variable to a value.
+	 * If value is an object, all the template variables of the form 'key.property' are set to value[property].
+	 */
+	set(key, value) {
+		if (value && typeof value === 'object') { // filter out null (typeof null is "object")
+			for (const p in this.variables[key]) {
+				this.setValue(key + '.' + p, value[p]); // avoid recursivity (for now at least)
+			}
+		} else {
+			this.setValue(key, value);
 		}
-	} else {
-		this.setValue(key, value);
 	}
-};
 
-Template.prototype.setValue = function (key, value) {
-	this.data[key] = (value == null) ? '' : value;
-};
-
-Template.prototype.get = function (key) {
-	return this.data[key] || '';
-};
-
-/**
- * Retrieve the parsed content.
- * An optional block id can be passed to target a specific block. The targeted block content is reset.
- */
-Template.prototype.retrieve = function (blkId) {
-	blkId = blkId || this.MAIN;
-	const str = (this.parsedBlocks[blkId] || []).join('');
-	this.parsedBlocks[blkId] = [];
-	return str;
-};
-
-/**
- * Replace the placeholders in the string by the values in the object
- */
-Template.prototype.supplant = function (str, o) {
-	return str.replace(/{([.\w]+)}/g, (a, b) => o[b] ?? a);
-};
-
-/**
- * Parse the specified block.
- * Blocks allow conditional and multiple parsing of content.
- */
-Template.prototype.parseBlock = function (blkId) {
-	const children = this.subBlocks[blkId];
-	if (!children) {
-		console.error('Not existing block parsed <%s>.', blkId);
-		return null;
+	setValue(key, value) {
+		this.data[key] = (value == null) ? '' : value;
 	}
-	for (const child of children) {
-		this.set('blk_' + child, this.retrieve(child));
-	}
-	const str = this.supplant(this.blocks[blkId], this.data);
-	if (!this.parsedBlocks[blkId]) this.parsedBlocks[blkId] = [];
-	this.parsedBlocks[blkId].push(str);
-};
 
-/**
- * Parse the template.
- * Forward any argument to the onParse callback, that will prepare the data (using 'set' and 'parseBlock').
- */
-Template.prototype.parse = function () {
-	this.data = {}; // stores data to supplant in templates
-	this.onParse.apply(this, arguments);
-	this.parseBlock(this.MAIN);
-};
+	get(key) {
+		return this.data[key] || '';
+	}
 
-/**
- * Load the parsed template
- * @param {string | DomNode} container
- * @param {string} [display] - During template load, the container will be set to `display: none`. This control the
- *                             value of the `display` property after the load. By default, the initial container
- *                             `display` is restored.
- * @param {string} [blk] - Only loads the specified subBlock in the container
- */
-Template.prototype.load = function (container, display, blk) {
-	if (typeof container === 'string') {
-		container = document.getElementById(container);
+	/**
+	 * Retrieve the parsed content.
+	 * An optional block id can be passed to target a specific block. The targeted block content is reset.
+	 */
+	retrieve(blkId) {
+		blkId = blkId || MAIN;
+		const str = (this.parsedBlocks[blkId] || []).join('');
+		this.parsedBlocks[blkId] = [];
+		return str;
 	}
-	if (container) {
-		display = display || container.style.display;
-		container.style.display = 'none';
-		container.innerHTML = this.retrieve(blk); // assume no scripts to execute
-		this.onLoad();
-		this.bindEvents(container);
-		container.style.display = display;
-	}
-};
 
-/**
- * Event binding
- */
-Template.prototype.bindEvents = function (container) {
-	// onclick
-	if (this.autoBindEvents?.includes('onclick')) {
-		container.querySelectorAll('[data-onclick]').forEach(el => {
-			el.onclick = this[el.dataset.onclick].bind(this, el);
-		});
+	/**
+	 * Replace the placeholders in the string by the values in the object
+	 */
+	supplant(str, o) {
+		return str.replace(/{([.\w]+)}/g, (a, b) => o[b] ?? a);
 	}
-	// onchange
-	if (this.autoBindEvents?.includes('onchange')) {
-		container.querySelectorAll('[data-onchange]').forEach(el => {
-			el.onchange = this[el.dataset.onchange].bind(this, el);
-		});
-	}
-};
 
-/**
- * Standard callbacks to be overriden.
- */
-Template.prototype.onCreate = function (i18nRepository) {
-	// to be overridden
-	this.i18n = i18nRepository;
-};
-Template.prototype.onParse = function (pfx, obj) {
-	// to be overridden
-	this.set(pfx, obj);
-};
-Template.prototype.onLoad = function () {
-	// to be overridden
-};
+	/**
+	 * Parse the specified block.
+	 * Blocks allow conditional and multiple parsing of content.
+	 */
+	parseBlock(blkId) {
+		const children = this.subBlocks[blkId];
+		if (!children) {
+			console.error('Not existing block parsed <%s>.', blkId);
+			return null;
+		}
+		for (const child of children) {
+			this.set('blk_' + child, this.retrieve(child));
+		}
+		const str = this.supplant(this.blocks[blkId], this.data);
+		if (!this.parsedBlocks[blkId]) this.parsedBlocks[blkId] = [];
+		this.parsedBlocks[blkId].push(str);
+	}
+
+	/**
+	 * Parse the template.
+	 * Forward any argument to the onParse callback, that will prepare the data (using 'set' and 'parseBlock').
+	 */
+	parse() {
+		this.data = {}; // stores data to supplant in templates
+		this.onParse.apply(this, arguments);
+		this.parseBlock(MAIN);
+	}
+
+	/**
+	 * Load the parsed template
+	 * @param {string | DomNode} container
+	 * @param {string} [display] - During template load, the container will be set to `display: none`. This control the
+	 *                             value of the `display` property after the load. By default, the initial container
+	 *                             `display` is restored.
+	 * @param {string} [blk] - Only loads the specified subBlock in the container
+	 */
+	load(container, display, blk) {
+		if (typeof container === 'string') {
+			container = document.getElementById(container);
+		}
+		if (container) {
+			display = display || container.style.display;
+			container.style.display = 'none';
+			container.innerHTML = this.retrieve(blk); // assume no scripts to execute
+			this.onLoad();
+			this.bindEvents(container);
+			container.style.display = display;
+		}
+	}
+
+	/**
+	 * Event binding
+	 */
+	bindEvents(container) {
+		// onclick
+		if (this.autoBindEvents?.includes('onclick')) {
+			container.querySelectorAll('[data-onclick]').forEach(el => {
+				el.onclick = this[el.dataset.onclick].bind(this, el);
+			});
+		}
+		// onchange
+		if (this.autoBindEvents?.includes('onchange')) {
+			container.querySelectorAll('[data-onchange]').forEach(el => {
+				el.onchange = this[el.dataset.onchange].bind(this, el);
+			});
+		}
+	}
+
+	/**
+	 * Standard callbacks to be overriden.
+	 */
+	onCreate(i18nRepository) {
+		// to be overridden
+		this.i18n = i18nRepository;
+	}
+
+	onParse(pfx, obj) {
+		// to be overridden
+		this.set(pfx, obj);
+	}
+
+	onLoad() {
+		// to be overridden
+	}
+}
