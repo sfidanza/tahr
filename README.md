@@ -15,3 +15,20 @@ It is being extracted from my [worldcup](https://github.com/sfidanza/worldcup) w
 ## Should I use it?
 
 Right now, clearly no.
+
+## Publication flow
+
+```bash
+npm version patch # minor / major: to bump package.json, commit and tag
+npm pack # to locally generate the tgz
+npm login
+npm publish --access=public # to publish once logged in (with 2FA)
+npm cache clean --force # publication takes a few minutes. Beyond that, clean npm cache.
+```
+
+References:
+- <https://docs.npmjs.com/creating-and-publishing-scoped-public-packages>
+- Automate publication to npm
+    * <https://dev.to/mir_mursalin_ankur/publishing-your-first-npm-package-a-real-world-guide-that-actually-helps-4l4>
+    * <https://docs.npmjs.com/trusted-publishers>
+    * <https://github.com/actions/setup-node/blob/main/docs/advanced-usage.md#publishing-to-npm-with-trusted-publisher-oidc>
